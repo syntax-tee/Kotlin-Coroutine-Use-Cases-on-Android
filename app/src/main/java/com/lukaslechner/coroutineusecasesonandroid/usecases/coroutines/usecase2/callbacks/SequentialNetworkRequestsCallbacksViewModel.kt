@@ -11,12 +11,17 @@ class SequentialNetworkRequestsCallbacksViewModel(
     private val mockApi: CallbackMockApi = mockApi()
 ) : BaseViewModel<UiState>() {
 
+    private  var getAndroidVersionCall : Call<List<AndroidVersion>>? = null
+
+    private  var getAndroidFeaturesCall : Call<VersionFeatures>? = null
+
+
     fun perform2SequentialNetworkRequest() {
 
         uiState.value = UiState.Loading
 
-        val getAndroidVersionCall = mockApi.getRecentAndroidVersions()
-        getAndroidVersionCall.enqueue(object: Callback<List<AndroidVersion>> {
+        getAndroidVersionCall = mockApi.getRecentAndroidVersions()
+        getAndroidVersionCall!!.enqueue(object: Callback<List<AndroidVersion>> {
             override fun onResponse(
                 call: Call<List<AndroidVersion>>,
                 response: Response<List<AndroidVersion>>
@@ -24,9 +29,9 @@ class SequentialNetworkRequestsCallbacksViewModel(
 
                 if(response.isSuccessful){
                     val mostRecentVersion = response.body()!!.last()
-                    val getAndroidFeaturesCall = mockApi.getAndroidVersionFeatures(mostRecentVersion.apiLevel)
+                     getAndroidFeaturesCall = mockApi.getAndroidVersionFeatures(mostRecentVersion.apiLevel)
 
-                    getAndroidFeaturesCall.enqueue(object : Callback<VersionFeatures> {
+                     getAndroidFeaturesCall!!.enqueue(object : Callback<VersionFeatures> {
                         override fun onResponse(call: Call<VersionFeatures>, response: Response<VersionFeatures>
                         ) {
                             val featuresOfMostRecentVersion = response.body()!!
@@ -50,5 +55,11 @@ class SequentialNetworkRequestsCallbacksViewModel(
 
         })
 
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        getAndroidFeaturesCall?.cancel()
+        getAndroidVersionCall?.cancel()
     }
 }
