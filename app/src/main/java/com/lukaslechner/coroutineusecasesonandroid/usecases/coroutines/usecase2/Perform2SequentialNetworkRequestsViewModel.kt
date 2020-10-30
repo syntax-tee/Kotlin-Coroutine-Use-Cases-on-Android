@@ -1,13 +1,25 @@
 package com.lukaslechner.coroutineusecasesonandroid.usecases.coroutines.usecase2
 
+import androidx.lifecycle.viewModelScope
 import com.lukaslechner.coroutineusecasesonandroid.base.BaseViewModel
 import com.lukaslechner.coroutineusecasesonandroid.mock.MockApi
+import kotlinx.coroutines.launch
 
-class Perform2SequentialNetworkRequestsViewModel(
+class  Perform2SequentialNetworkRequestsViewModel(
     private val mockApi: MockApi = mockApi()
 ) : BaseViewModel<UiState>() {
 
     fun perform2SequentialNetworkRequest() {
-
+       uiState.value = UiState.Loading
+        viewModelScope.launch {
+           try{
+               val getAndroidVersion = mockApi.getRecentAndroidVersions()
+               val mostRecentVersion = getAndroidVersion.last()
+               val versionFeature = mockApi.getAndroidVersionFeatures(mostRecentVersion.apiLevel)
+               uiState.value = UiState.Success(versionFeature)
+           }catch (exception: Exception){
+               uiState.value = UiState.Error("Network request failed")
+           }
+        }
     }
 }
