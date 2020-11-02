@@ -39,7 +39,7 @@ class VariableAmountOfNetworkRequestsViewModel(
                 }.awaitAll()
                 uiState.value = UiState.Success(versionFeatures)
             }catch (exception:Exception){
-
+                uiState.value = UiState.Error("Network Request Failed")
             }
 
         }
